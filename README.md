@@ -2,7 +2,7 @@
 
 **핸즈온 실습용 Next.js 메모 애플리케이션**
 
-LocalStorage 기반의 완전한 CRUD 기능을 갖춘 메모 앱으로, MCP 연동 및 GitHub PR 생성 실습의 기반이 되는 프로젝트입니다.
+Supabase 데이터베이스 기반의 완전한 CRUD 기능을 갖춘 메모 앱으로, MCP 연동 및 GitHub PR 생성 실습의 기반이 되는 프로젝트입니다.
 
 ## 🚀 주요 기능
 
@@ -11,7 +11,7 @@ LocalStorage 기반의 완전한 CRUD 기능을 갖춘 메모 앱으로, MCP 연
 - 🏷️ 태그 시스템으로 메모 태깅
 - 🔍 제목, 내용, 태그 기반 실시간 검색
 - 📱 반응형 디자인 (모바일, 태블릿, 데스크톱)
-- 💾 LocalStorage 기반 데이터 저장 (오프라인 지원)
+- 💾 Supabase 데이터베이스 기반 데이터 저장
 - 🎨 모던한 UI/UX with Tailwind CSS
 
 ## 🛠 기술 스택
@@ -19,7 +19,8 @@ LocalStorage 기반의 완전한 CRUD 기능을 갖춘 메모 앱으로, MCP 연
 - **Framework**: Next.js 15.4.4 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS v4
-- **Storage**: LocalStorage
+- **Database**: Supabase (PostgreSQL)
+- **Client**: @supabase/supabase-js
 - **State Management**: React Hooks (useState, useEffect, useMemo)
 - **Package Manager**: npm
 
@@ -31,13 +32,66 @@ LocalStorage 기반의 완전한 CRUD 기능을 갖춘 메모 앱으로, MCP 연
 npm install
 ```
 
-### 2. 개발 서버 실행
+### 2. Supabase 설정
+
+#### 2.1. Supabase 프로젝트 생성
+1. [Supabase](https://supabase.com)에서 새 프로젝트를 생성합니다.
+2. 프로젝트가 생성되면 Project URL과 anon public key를 복사합니다.
+
+#### 2.2. 환경변수 설정
+프로젝트 루트에 `.env.local` 파일을 생성하고 다음과 같이 설정합니다:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+#### 2.3. 데이터베이스 스키마 생성
+Supabase Dashboard의 SQL Editor에서 다음 SQL을 실행하거나, `supabase/migrations/001_create_memos_table.sql` 파일의 내용을 실행합니다:
+
+```sql
+-- Create memos table based on the existing Memo interface
+CREATE TABLE IF NOT EXISTS memos (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  category TEXT NOT NULL DEFAULT 'other',
+  tags TEXT[] DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Create indexes for better performance
+CREATE INDEX IF NOT EXISTS idx_memos_category ON memos(category);
+CREATE INDEX IF NOT EXISTS idx_memos_tags ON memos USING GIN(tags);
+CREATE INDEX IF NOT EXISTS idx_memos_created_at ON memos(created_at DESC);
+
+-- Auto-update updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_memos_updated_at
+    BEFORE UPDATE ON memos
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable RLS and create policy
+ALTER TABLE memos ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all operations on memos" ON memos FOR ALL USING (true);
+```
+
+### 3. 개발 서버 실행
 
 ```bash
 npm run dev
 ```
 
-### 3. 브라우저 접속
+### 4. 브라우저 접속
 
 ```
 http://localhost:3000
@@ -53,16 +107,25 @@ memo-app/
 │   │   ├── layout.tsx           # 루트 레이아웃
 │   │   └── page.tsx             # 메인 페이지
 │   ├── components/
+│   │   ├── MemoDetailModal.tsx  # 메모 상세보기 모달
 │   │   ├── MemoForm.tsx         # 메모 생성/편집 폼
 │   │   ├── MemoItem.tsx         # 개별 메모 카드
 │   │   └── MemoList.tsx         # 메모 목록 및 필터
 │   ├── hooks/
 │   │   └── useMemos.ts          # 메모 관리 커스텀 훅
+│   ├── lib/
+│   │   └── supabase.ts          # Supabase 클라이언트 설정
+│   ├── services/
+│   │   └── memoService.ts       # 메모 API 서비스
 │   ├── types/
+│   │   ├── database.ts          # Supabase 데이터베이스 타입
 │   │   └── memo.ts              # 메모 타입 정의
 │   └── utils/
-│       ├── localStorage.ts      # LocalStorage 유틸리티
+│       ├── localStorage.ts      # LocalStorage 유틸리티 (deprecated)
 │       └── seedData.ts          # 샘플 데이터 시딩
+├── supabase/
+│   └── migrations/
+│       └── 001_create_memos_table.sql  # 데이터베이스 스키마
 └── README.md                    # 프로젝트 문서
 ```
 

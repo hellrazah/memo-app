@@ -23,15 +23,25 @@ export default function Home() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingMemo, setEditingMemo] = useState<Memo | null>(null)
 
-  const handleCreateMemo = (formData: MemoFormData) => {
-    createMemo(formData)
-    setIsFormOpen(false)
+  const handleCreateMemo = async (formData: MemoFormData) => {
+    try {
+      await createMemo(formData)
+      setIsFormOpen(false)
+    } catch (error) {
+      console.error('Failed to create memo:', error)
+      alert('메모 생성에 실패했습니다.')
+    }
   }
 
-  const handleUpdateMemo = (formData: MemoFormData) => {
+  const handleUpdateMemo = async (formData: MemoFormData) => {
     if (editingMemo) {
-      updateMemo(editingMemo.id, formData)
-      setEditingMemo(null)
+      try {
+        await updateMemo(editingMemo.id, formData)
+        setEditingMemo(null)
+      } catch (error) {
+        console.error('Failed to update memo:', error)
+        alert('메모 수정에 실패했습니다.')
+      }
     }
   }
 
