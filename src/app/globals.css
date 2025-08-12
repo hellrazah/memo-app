@@ -39,3 +39,75 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* MDEditor 커스텀 스타일 */
+.w-md-editor {
+  background-color: transparent !important;
+}
+
+.w-md-editor.w-md-editor-focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1) !important;
+}
+
+.w-md-editor-text-textarea,
+.w-md-editor-text {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+.w-md-editor-text-textarea {
+  color: #374151 !important;
+}
+
+/* 마크다운 프리뷰 스타일 */
+.wmde-markdown {
+  background-color: transparent !important;
+}
+
+.wmde-markdown h1,
+.wmde-markdown h2,
+.wmde-markdown h3,
+.wmde-markdown h4,
+.wmde-markdown h5,
+.wmde-markdown h6 {
+  color: #1f2937 !important;
+  margin-top: 1em !important;
+  margin-bottom: 0.5em !important;
+}
+
+.wmde-markdown p {
+  color: #374151 !important;
+  margin-bottom: 1em !important;
+}
+
+.wmde-markdown code {
+  background-color: #f3f4f6 !important;
+  color: #dc2626 !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+}
+
+.wmde-markdown pre {
+  background-color: #f9fafb !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 6px !important;
+  padding: 1em !important;
+}
+
+.wmde-markdown blockquote {
+  border-left: 4px solid #e5e7eb !important;
+  padding-left: 1em !important;
+  color: #6b7280 !important;
+  font-style: italic !important;
+}
+
+.wmde-markdown ul,
+.wmde-markdown ol {
+  padding-left: 1.5em !important;
+  margin-bottom: 1em !important;
+}
+
+.wmde-markdown li {
+  margin-bottom: 0.25em !important;
+}
